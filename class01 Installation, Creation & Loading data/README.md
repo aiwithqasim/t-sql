@@ -33,6 +33,10 @@ The following illustrates the BikeStores database diagram:
 
 ![bikestore Database](../img/bikstore-database.png)
 
+Attaching references fo relatioship understanding in above diagram
+
+![erd relation](../img/erd-notation.png)
+
 #### OBSERVATIONS:
 - The BikeStores sample database has two schemas sales and production
 - These schemas have nine tables.

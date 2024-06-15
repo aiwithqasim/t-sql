@@ -89,6 +89,12 @@ Attaching references fo relatioship understanding in above diagram
     ); 
     ```
 
+NOE:
+- **ON DELETE CASCADE:** Deletes referencing rows in the child table when a row in the parent table is deleted.
+- **ON UPDATE CASCADE:** Updates referencing rows in the child table when a row in the parent table is updated.
+- **ON DELETE NO ACTION:** Prevents deletion in the parent table if there are referencing rows in the child table.
+- **ON UPDATE NO ACTION:** Prevents update in the parent table if there are referencing rows in the child table.
+
 - Table `sales.stores`
 
     ```sql

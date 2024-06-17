@@ -1,4 +1,4 @@
-## SQL Server Basis part-1
+# SQL Server Basis part-1
 
 In this class we'll cover following topics
 - Querying Data
@@ -8,7 +8,7 @@ In this class we'll cover following topics
 - Joining Data
 - Grouping data
 
-### Section1: Querying Data
+## SECTION-01: QUERYING DATA
 
 This section helps you learn how to query data from the SQL Server database. We will start with a simple query that allows you to retrieve data from a single table.
 
@@ -39,7 +39,7 @@ In last example, SQL Server processes the clauses in the following sequence: `FR
 
 ![order of execution](../img/order-of-execution.png)
 
-### Section2: Sorting Data
+### SECTION-02: SORTING DATA
 
 This section helps you learn how to sort the queried data from the SQL Server database.
 
@@ -74,14 +74,14 @@ Using the ordinal positions of columns in the ORDER BY clause is considered a ba
 - Second, when you modify the select list, you may forget to make the corresponding changes in the ORDER BY clause.
 Therefore, it is a good practice to always specify the column names explicitly in the ORDER BY clause.
 
-### Section2: Limiting Data
+### SECTION-03: LIMITING DATA
 
 This section helps you learn how to limit data in the SQL Server using `OFFSET` `FETCH` and `TOP`.
 
 `OFFSET FETCH` – limit the number of rows returned by a query.
 `SELECT TOP` – limit the number of rows or percentage of rows returned in a query’s result set.
 
-#### OFFSET FETCH
+### OFFSET FETCH
 
 ```sql
 -- syntax
@@ -104,7 +104,7 @@ SELECT product_name, list_price FROM production.products ORDER BY list_price, pr
 SELECT product_name, list_price FROM production.products ORDER BY list_price, product_name OFFSET 0 ROWS FECTH NEXT 10 ROWS; -- select first 10 rows
 ```
 
-#### SELECT `TOP`
+### SELECT `TOP`
 
 ```sql
 -- syntax

@@ -6,7 +6,7 @@ In this class we'll cover following topics
 - Limiting Data
 - Filtering Data
 - Joining Data
-- Filtering Data
+- Grouping data
 
 ### Section1: Querying Data
 
@@ -39,7 +39,7 @@ In last example, SQL Server processes the clauses in the following sequence: `FR
 
 ![order of execution](../img/order-of-execution.png)
 
-### Section1: Sorting Data
+### Section2: Sorting Data
 
 This section helps you learn how to sort the queried data from the SQL Server database.
 
@@ -73,3 +73,57 @@ Using the ordinal positions of columns in the ORDER BY clause is considered a ba
 - First, the columns in a table don’t have ordinal positions and need to be referenced by name.
 - Second, when you modify the select list, you may forget to make the corresponding changes in the ORDER BY clause.
 Therefore, it is a good practice to always specify the column names explicitly in the ORDER BY clause.
+
+### Section2: Limiting Data
+
+This section helps you learn how to limit data in the SQL Server using `OFFSET` `FETCH` and `TOP`.
+
+`OFFSET FETCH` – limit the number of rows returned by a query.
+`SELECT TOP` – limit the number of rows or percentage of rows returned in a query’s result set.
+
+#### OFFSET FETCH
+
+```sql
+-- syntax
+ORDER BY column_list [ASC |DESC]
+OFFSET offset_row_count {ROW | ROWS} -- OFFSET clause specifies the number of rows to skip
+FETCH {FIRST | NEXT} fetch_row_count {ROW | ROWS} ONLY -- FECTH is optional & FIRST/NEXT are optional
+```
+
+_NOTE:_
+- The `OFFSET` and `FETCH` clauses are the options of the `ORDER BY` clause.
+- The following illustrates the OFFSET and FETCH clauses:
+
+![fecth-offset](../img/sql-server-OFFSET-FETCH.png)
+
+```sql
+-- examples
+SELECT product_name, list_price FROM production.products ORDER BY list_price, product_name; -- NOTE above point # 01
+SELECT product_name, list_price FROM production.products ORDER BY list_price, product_name OFFSET 10 ROWS; -- skip first 10 rows
+SELECT product_name, list_price FROM production.products ORDER BY list_price, product_name OFFSET 10 ROWS FECTH NEXT 10 ROWS; -- skip first 10 & select next next 10 rows
+SELECT product_name, list_price FROM production.products ORDER BY list_price, product_name OFFSET 0 ROWS FECTH NEXT 10 ROWS; -- select first 10 rows
+```
+
+#### SELECT `TOP`
+
+```sql
+-- syntax
+SELECT TOP (expression) [PERCENT]
+    [WITH TIES]
+FROM 
+    table_name
+ORDER BY 
+    column_name;
+```
+
+```sql
+-- examples
+SELECT TOP 10 product_name, list_price FROM production.products ORDER BY list_price DESC; -- top 10 most expensive products
+SELECT TOP 1 PERCENT product_name, list_price FROM production.products ORDER BY list_price DESC; -- total_rows=321, 1%=3.21 ~ 4rows
+SELECT TOP 3 WITH TIES  product_name, list_price FROM production.products ORDER BY list_price DESC; -- explained below
+```
+Example three is explained below:
+
+![top with ties explanation](../img/top-with-ties-examples.png)
+
+in this example, the third expensive product has a list price of 6499.99. Because the statement uses TOP WITH TIES, it returns three more products whose list prices are the same as the third one.

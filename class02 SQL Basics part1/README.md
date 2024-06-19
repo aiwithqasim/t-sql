@@ -174,12 +174,13 @@ Both `DISTINCT` and `GROUP BY` clause reduces the number of returned rows in the
 
 However, you should use the `GROUP BY` clause when you want to apply an aggregate function to one or more columns.
 
-### => SELECT `WHERE, AND, OR, IN, BETWEEN, LIKE`
+### => SELECT `WHERE, AND, OR, IN, BETWEEN, LIKE, AS`
 
 ```sql
 -- syntax
-SELECT select_list FROM table_name WHERE search_condition;
--- search_condition [AND, OR, IN, BETWEEN, LIKE]
+SELECT select_list FROM table_name WHERE search_condition; -- search_condition [AND, OR, IN, BETWEEN, LIKE]
+column_name | expression  AS column_alias -- AS is optional
+column_name | expression column_alias
 ```
 
 ```sql
@@ -198,5 +199,7 @@ SELECT product_id, product_name, category_id, model_year, list_price FROM produc
 SELECT product_id, product_name, category_id, model_year, list_price FROM production.products WHERE list_price IN (299.99, 369.99, 489.99) ORDER BY list_price DESC;
 -- 7) Finding rows whose values contain a string
 SELECT product_id, product_name, category_id, model_year, list_price FROM production.products WHERE product_name LIKE '%Cruiser%' ORDER BY list_price DESC;
-
+-- 8) Column alias ()
+SELECT first_name + ' ' + last_name AS full_name FROM sales.customers ORDER BY first_name;
+SELECT first_name + ' ' + last_name AS 'Full Name' FROM sales.customers ORDER BY first_name;
 ```

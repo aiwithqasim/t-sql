@@ -169,4 +169,3 @@ SELECT * FROM (
 	INNER JOIN production.categories c
 		ON c.category_id = p.product_id
 ) t
-PIVOT 

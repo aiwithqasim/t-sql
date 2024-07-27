@@ -333,14 +333,17 @@ DROP TABLE persons;
 /*
 SQL Server SELECT INTO
 
+- Need table reference
+- automatically create the DDL as per reference table
+
 syntax:
 -------
 SELECT 
-    select_list
+    select_list (columns)
 INTO 
-    destination
+    destination -- automatically create ddl
 FROM 
-    source
+    source -- reference table
 [WHERE condition]
 */
 
@@ -360,18 +363,219 @@ SELECT
     first_name, 
     last_name, 
     email
-INTO 
-    testDB.marketing.customers
-FROM    
-    sales.customers
-WHERE 
-    state = 'CA';
+INTO testDB.marketing.customers -- fully qalified
+FROM sales.customers -- fully qualifies path not neessary
+WHERE state = 'CA';
 
 SELECT * 
 FROM testDB.marketing.customers;
 
+/*
+SQL Server Rename Table
 
--- Section: 13 & 14 Homework
+limitation: sql server didn'y support rename directly
+
+syntax:
+-------
+EXEC sp_rename 'old_table_name', 'new_table_name'
+*/
+
+CREATE TABLE sales.contr (
+    contract_no INT IDENTITY PRIMARY KEY,
+    start_date DATE NOT NULL,
+    expired_date DATE,
+    customer_id INT,
+    amount DECIMAL (10, 2)
+); 
+
+-- methods -1
+EXEC sp_rename 'sales.contracts', 'contr';
+
+--methods -2 GUI
+-- goto table & then rename it.
+
+-- Caution: Changing any part of an object 
+-- name could break scripts and 
+-- stored procedures.
+
+/*
+SQL Server Temporary Tables
+
+1- temporary tables
+2- global temporary tables
+
+syntax:
+-------
+
+SELECT 
+    select_list
+INTO 
+    #temporary_table (must started with #)
+FROM 
+    table_name
+....
+
+*/
+
+-- temporary tables using SELECT INTO
+SELECT    
+    customer_id, 
+    first_name, 
+    last_name, 
+    email
+INTO  #temporary_table
+FROM sales.customers
+WHERE state = 'CA';
+
+SELECT * 
+FROM #temporary_table;
+
+-- temporary table using  CREATE STATEMENT
+
+CREATE TABLE #haro_products (
+    product_name VARCHAR(MAX),
+    list_price DEC(10,2)
+);
+
+INSERT INTO #haro_products
+SELECT product_name,list_price
+FROM production.products
+WHERE brand_id = 2;
+
+SELECT *
+FROM #haro_products;
+
+-- Global temporary tables
+
+CREATE TABLE ##heller_products (
+    product_name VARCHAR(MAX),
+    list_price DEC(10,2)
+);
+
+INSERT INTO ##heller_products
+SELECT
+    product_name,
+    list_price
+FROM 
+    production.products
+WHERE
+    brand_id = 3;
+
+DROP TABLE ##heller_products;
+
+/*
+SQL Server Synonym
+
+syntax:
+-------
+
+CREATE SYNONYM [ schema_name_1. ] synonym_name 
+FOR object;
+
+object can be:
+
+[ server_name.[ database_name ] . [ schema_name_2 ]. object_name   
+
+*/
 
 
+CREATE SYNONYM contracts
+FOR [BikeStores].[sales].[contracts];
 
+select * from contracts;
+
+CREATE SYNONYM orders FOR sales.orders;
+
+select * from orders;
+
+select name, base_object_name
+from sys.synonyms
+
+DROP SYNONYM IF EXISTS orders;
+
+/* Section 13
+
+-- BIT ( 1 or 0)
+-- VARCHAR
+-- DECIMAL
+-- INT
+-- DATE
+-- TIME
+-- DATETIME
+-- CHAR
+*/
+
+/*
+Section 14. Constraints
+-------------------------
+1- PRIMARY KEY
+2- FOREIGN KEY
+3- NOT NULL
+4- UNIQUE
+5- CHECK
+
+*/
+
+CREATE SCHEMA production;
+GO
+
+DROP TABLE IF EXISTS production.categories;
+DROP TABLE IF EXISTS production.brands;
+DROP TABLE IF EXISTS production.products;
+
+create table production.categories (
+category_id int primary key not null Identity(1,1),
+category_name varchar(200) Unique not null
+);
+
+
+create table production.brand(
+brand_id int primary key Identity(1,1),
+brand_name varchar(255) Unique not null
+);
+
+create table production.products(
+product_id int primary key Identity(1,1),
+product_name varchar(200) Unique not null,
+brand_id int not null,
+category_id int not null,
+model_year smallint not null,
+list_price decimal not null ,
+Foreign key (brand_id) references production.brand (brand_id),
+Foreign key (category_id) references production.categories(category_id),
+check (model_year >= 1900 and model_year<= getdate()),
+check(list_price > 0)
+);
+
+/*
+Section 15. Expressions
+
+SQL Server CASE
+
+syntax:
+------
+CASE input   
+    WHEN e1 THEN r1
+    WHEN e2 THEN r2
+    ...
+    WHEN en THEN rn
+    [ ELSE re ]   
+END  
+
+*/
+
+-- Using simple CASE expression in the SELECT clause example
+
+select 
+	CASE order_status
+		WHEN 1 THEN 'Pending'
+		WHEN 2 THEN 'Processing'
+		WHEN 3 THEN 'Rejected'
+		WHEN 4 THEN 'Completd'
+	END as order_status,
+	count(order_id) as order_count
+from sales.orders
+group by order_status
+order by order_status;
+
+-- wihtout groupby using SUM(CASE ..END)

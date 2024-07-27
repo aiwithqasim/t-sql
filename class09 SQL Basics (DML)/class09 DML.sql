@@ -286,3 +286,192 @@ SELECT * FROM procurement.goods_receipts;
 
 -- SQL Server Computed Columns
 
+CREATE TABLE persons(
+    person_id  INT PRIMARY KEY IDENTITY, 
+    first_name NVARCHAR(100) NOT NULL, 
+    last_name  NVARCHAR(100) NOT NULL, 
+    dob        DATE
+);
+
+INSERT INTO 
+    persons(first_name, last_name, dob)
+VALUES
+    ('John','Doe','1990-05-01'),
+    ('Jane','Doe','1995-03-01');
+
+SELECT
+	person_id,
+	first_name + ' ' + last_name AS full_name,
+	dob
+FROM  persons
+ORDER BY full_name
+
+ALTER TABLE persons
+ADD full_name AS (first_name + ' ' + last_name);
+
+ALTER TABLE persons
+ADD age_in_years 
+    AS (CONVERT(INT,CONVERT(CHAR(8),GETDATE(),112))-CONVERT(CHAR(8),dob,112))/10000;
+
+/*
+CREATE TABLE table_name(
+...,
+column_name AS expression [PERSISTED],
+...
+);
+*/
+
+/*
+deterministi (PERSISTED): those values that don't changes over time eg: full_name
+non-deterministic: those values that changes over time eg: date
+*/
+
+select * from persons;
+
+TRUNCATE TABLE persons;
+DROP TABLE persons;
+
+/*
+SQL Server SELECT INTO
+
+syntax:
+-------
+SELECT 
+    select_list
+INTO 
+    destination
+FROM 
+    source
+[WHERE condition]
+*/
+
+CREATE SCHEMA marketing;
+GO
+
+SELECT * INTO marketing.customers
+FROM sales.customers;
+
+SELECT * FROM marketing.customers;
+
+-- Using SQL Server SELECT INTO statement to copy table across databases
+
+SELECT * INTO testDB.dbo.customers
+FROM  sales.customers;
+
+select * from testDB.dbo.customers;
+
+/*
+SQL Server Rename Table
+
+SQL Server does not have any statement that directly
+renames a table. However, it does provide you with a
+stored procedure named sp_rename that allows you to 
+change the name of a table.
+
+syntax:
+-------
+EXEC sp_rename 'old_table_name', 'new_table_name'
+
+*/
+
+CREATE TABLE sales.contr (
+    contract_no INT IDENTITY PRIMARY KEY,
+    start_date DATE NOT NULL,
+    expired_date DATE,
+    customer_id INT,
+    amount DECIMAL (10, 2)
+); 
+
+EXEC sp_rename 'sales.contr', 'contracts';
+
+/*
+Caution: Changing any part of an object name could
+break scripts and stored procedures.
+
+SQL Server Temporary Tables (# tables)
+
+*/
+
+SELECT
+    product_name,
+    list_price
+INTO #trek_products --- temporary table
+FROM
+    production.products
+WHERE
+    brand_id = 9;
+
+
+CREATE TABLE #haro_products (
+    product_name VARCHAR(MAX),
+    list_price DEC(10,2)
+);
+
+INSERT INTO #haro_products
+SELECT product_name, list_price
+FROM production.products
+WHERE brand_id = 2;
+
+SELECT * FROM #haro_products;
+
+-- Global temporary tables
+
+CREATE TABLE ##heller_products (
+    product_name VARCHAR(MAX),
+    list_price DEC(10,2)
+);
+
+INSERT INTO ##heller_products
+SELECT product_name, list_price
+FROM production.products
+WHERE brand_id = 3;
+
+DROP TABLE ##heller_products;
+
+/*
+SQL Server Synonym
+
+syntax:
+-------
+CREATE SYNONYM [ schema_name_1. ] synonym_name 
+FOR object;
+
+objectform
+***********
+[ server_name.[ database_name ] . [ schema_name_2 ]. object_name   
+
+*/
+
+CREATE SYNONYM orders FOR sales.orders;
+
+SELECT * FROM orders;
+
+CREATE SCHEMA purchasing;
+GO
+
+CREATE TABLE purchasing.suppliers(
+    supplier_id   INT
+    PRIMARY KEY IDENTITY, 
+    supplier_name NVARCHAR(100) NOT NULL
+);
+
+CREATE SYNONYM suppliers 
+FOR testDB.purchasing.suppliers;
+
+SELECT * FROM suppliers;
+
+--  Listing synonyms using Transact-SQL command
+
+select name, base_object_name
+from sys.synonyms
+order by name;
+
+-- Removing a synonym
+-- DROP SYNONYM [ IF EXISTS ] [schema.] synonym_name  
+
+DROP SYNONYM IF EXISTS suppliers;
+
+
+
+
+

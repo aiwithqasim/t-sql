@@ -554,7 +554,7 @@ SQL Server CASE
 
 syntax:
 ------
-CASE input   
+CASE [input]  
     WHEN e1 THEN r1
     WHEN e2 THEN r2
     ...
@@ -565,6 +565,13 @@ END
 */
 
 -- Using simple CASE expression in the SELECT clause example
+
+select 
+	order_status,
+	count(order_id) orders_count
+from sales.orders
+group by order_status
+order by order_status;
 
 select 
 	CASE order_status
@@ -579,3 +586,231 @@ group by order_status
 order by order_status;
 
 -- wihtout groupby using SUM(CASE ..END)
+
+select SUM(
+	CASE 
+		WHEN order_status = 1
+		THEN 1
+		ELSE 0
+	END) as 'Pending',
+	SUM(
+	CASE
+		WHEN order_status = 2
+		THEN 1
+		ELSE 0
+	END) as 'Processing',
+	SUM(
+	CASE
+		WHEN order_status = 3
+		THEN 1
+		ELSE 0
+	END) as 'Rejected',
+	SUM(
+	CASE
+		WHEN order_status = 4
+		THEN 1
+		ELSE 0
+	END) as 'Completed',
+	COUNT(*) as Total
+from sales.orders
+where year(order_date) = 2018;
+
+-- TASK: Important order in pending or processing stage
+--> year 2018
+--> order _status 1 & 2
+--> order_id (quantiy * list_price = Value)
+--> 5000 'Very Value Low', 10000 "Fair Oder"
+--> 20000 'Aerage Order', 20000> "High Value Order"
+
+/*
+1---10,000 as student_id
+
+student_id BETWEEN 400 and 700
+*/
+
+select 
+	o.order_id,
+	SUM(i.quantity * i.list_price) 'order_value',
+	CASE
+		WHEN SUM(i.quantity * i.list_price) > 20000 THEN 'High Value Order'
+		WHEN SUM(i.quantity * i.list_price) < 20000 and
+			SUM(i.quantity * i.list_price) >= 10000 THEN 'Average Order'
+		WHEN SUM(i.quantity * i.list_price) < 10000 and
+			SUM(i.quantity * i.list_price) >= 5000 THEN 'Fair Oder'
+		WHEN SUM(i.quantity * i.list_price) < 5000 THEN 'Low Value Oder'
+	END as 'priority'
+from sales.orders o
+inner join sales.order_items i
+on o.order_id = i.order_id
+where year(o.order_date) = 2018 and order_status IN (1,2)
+group by o.order_id
+order by SUM(i.quantity * i.list_price) desc;
+
+
+
+select 
+	o.order_id,
+	SUM(i.quantity * i.list_price) 'order_value',
+	CASE
+		WHEN SUM(i.quantity * i.list_price) >= 20000 THEN 'High Value Order'
+		WHEN SUM(i.quantity * i.list_price) BETWEEN  10000 and 20000 THEN 'Average Order'
+		WHEN SUM(i.quantity * i.list_price) BETWEEN 5000 and 10000 THEN 'Fair Oder'
+		WHEN SUM(i.quantity * i.list_price) BETWEEN 0 and 5000 THEN 'Low Value Oder'
+	END as 'priority'
+from sales.orders o
+inner join sales.order_items i
+on o.order_id = i.order_id
+where year(o.order_date) = 2018 and ((o.order_status =1) or (o.order_status = 2))
+group by o.order_id
+order by SUM(i.quantity * i.list_price) desc;
+
+/*
+SQL Server COALESCE
+
+-- returns the first non-null argument.
+
+COALESCE(e1,[e2,...,en])
+
+*/
+
+select coalesce(null, null, 10, 20, null);
+select coalesce(null, null, 'Hello', 'Hi', null);
+
+-- Using SQL Server COALESCE expression to substitute NULL by new values
+
+SELECT first_name,
+		last_name,
+		coalesce(phone, 'N/A'),
+		email
+FROM sales.customers
+ORDER BY first_name, last_name;
+
+-- Using SQL Server COALESCE expression to use the available data
+
+CREATE TABLE salaries (
+    staff_id INT PRIMARY KEY,
+    hourly_rate decimal,
+    weekly_rate decimal,
+    monthly_rate decimal,
+    CHECK(
+        hourly_rate IS NOT NULL OR 
+        weekly_rate IS NOT NULL OR 
+        monthly_rate IS NOT NULL)
+);
+
+INSERT INTO 
+    salaries(
+        staff_id, 
+        hourly_rate, 
+        weekly_rate, 
+        monthly_rate
+)VALUES
+    (1,20, NULL,NULL),
+    (2,30, NULL,NULL),
+    (3,NULL, 1000,NULL),
+    (4,NULL, NULL,6000),
+    (5,NULL, NULL,6500);
+
+select * from salaries;
+
+-- TASK: we don't want null values in monthly_rate column
+
+--COALESCE(e1,[e2,...,en])
+select 
+	staff_id, 
+    hourly_rate, 
+    weekly_rate, 
+    coalesce(hourly_rate*22*8, weekly_rate*4, monthly_rate) as monthly_rates
+from salaries
+
+/*
+COALESCE vs. CASE expression
+
+COALESCE expression is a syntactic sugar of the CASE expression.
+
+COALESCE(e1,e2,e3)
+
+CASE
+    WHEN e1 IS NOT NULL THEN e1
+    WHEN e2 IS NOT NULL THEN e2
+    ELSE e3
+END
+
+
+SQL Server NULLIF
+
+NULLIF expression accepts two arguments and
+returns NULL if two arguments are equal.
+Otherwise, it returns the first expression.
+
+syntax:
+------
+NULLIF(expression1, expression2)
+
+*/
+
+select NULLIF(10, 10) result;
+select NULLIF(20, 10) result;
+
+SELECT NULLIF('Hello', 'Hello') result;
+
+SELECT NULLIF('Hello', 'Hi') result;
+
+-- Using NULLIF expression to translate a blank string to NULL
+
+CREATE TABLE sales.leads(
+    lead_id    INT	PRIMARY KEY IDENTITY, 
+    first_name VARCHAR(100) NOT NULL, 
+    last_name  VARCHAR(100) NOT NULL, 
+    phone      VARCHAR(20), 
+    email      VARCHAR(255) NOT NULL
+);
+
+INSERT INTO sales.leads
+(
+    first_name, 
+    last_name, 
+    phone, 
+    email
+)
+VALUES
+(
+    'John', 
+    'Doe', 
+    '(408)-987-2345', 
+    'john.doe@example.com'
+),
+(
+    'Jane', 
+    'Doe', 
+    '', 
+    'jane.doe@example.com'
+),
+(
+    'David', 
+    'Doe', 
+    NULL, 
+    'david.doe@example.com'
+);
+
+select * from sales.leads;
+select * from sales.leads where phone IS NULL;
+
+-- NULLIF('', '') --> NULL
+-- NNULLIF(NULL, '') --> NULL
+select * 
+from sales.leads 
+where NULLIF(phone, '') IS NULL;
+
+DECLARE @a int = 10, @b int = 10;
+
+SELECT 
+CASE 
+    WHEN @a=@b THEN NULL 
+    ELSE @a 
+END;
+
+DECLARE @c int = 20, @d int = 20;
+SELECT
+    NULLIF(@c,@d) AS result;
+
